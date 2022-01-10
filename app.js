@@ -1,12 +1,12 @@
 const express = require("express");
 const path = require("path");
 const mongoose = require("mongoose");
-const Campground = require("./models/campground");
-const methodOverride = require("method-override");
-const catchAsync = require("./utils/catchAsync");
-const ExpressError = require("./utils/ExpressError");
-
 const engine = require("ejs-mate");
+const methodOverride = require("method-override");
+const Campground = require("./models/campground");
+const catchAsync = require("./utils/catchAsync");
+const { campgroundJoiSchema } = require("./schemas");
+const ExpressError = require("./utils/ExpressError");
 
 mongoose.connect("mongodb://localhost:27017/yelp-camp", {
   useNewUrlParser: true,
@@ -29,6 +29,17 @@ app.use(express.urlencoded({ extended: true })); // For express to be able to pa
 
 app.use(methodOverride("_method"));
 
+const validateCampground = (req, res, next) => {
+  const { error } = campgroundJoiSchema.validate(req.body);
+
+  if (error) {
+    const message = error.details.map((err) => err.message).join(",");
+    throw new ExpressError(message, 400);
+  } else {
+    next();
+  }
+};
+
 app.get("/", (req, res) => {
   res.render("home");
 });
@@ -44,6 +55,7 @@ app.get("/campgrounds/new", (req, res) => {
 
 app.post(
   "/campgrounds",
+  validateCampground,
   catchAsync(async (req, res, next) => {
     const campground = new Campground(req.body.campground);
     await campground.save();
@@ -63,15 +75,17 @@ app.get("/campgrounds/:id/edit", async (req, res) => {
   res.render("campgrounds/edit", { campground });
 });
 
-app.put("/campgrounds/:id", async (req, res) => {
-  const id = req.params.id;
-
-  const campground = await Campground.findByIdAndUpdate(id, {
-    ...req.body.campground,
-  });
-
-  res.redirect(`/campgrounds/${campground._id}`);
-});
+app.put(
+  "/campgrounds/:id",
+  validateCampground,
+  catchAsync(async (req, res) => {
+    const id = req.params.id;
+    const campground = await Campground.findByIdAndUpdate(id, {
+      ...req.body.campground,
+    });
+    res.redirect(`/campgrounds/${campground._id}`);
+  })
+);
 
 app.delete("/campgrounds/:id", async (req, res) => {
   const id = req.params.id;
