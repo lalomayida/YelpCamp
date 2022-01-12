@@ -39,6 +39,10 @@ router.post(
 router.get("/:id", async (req, res) => {
   const id = req.params.id;
   const campground = await Campground.findById(id).populate("reviews");
+  if (!campground) {
+    req.flash("error", "Can't find campground");
+    return res.redirect("/campgrounds");
+  }
   res.render("campgrounds/show", { campground });
 });
 
