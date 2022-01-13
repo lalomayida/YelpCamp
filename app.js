@@ -54,7 +54,7 @@ app.use(passport.session());
 passport.use(new LocalStrategy(User.authenticate())); //Setting passport to use the local strategy to authenticate the user
 
 passport.serializeUser(User.serializeUser());
-passport.deserializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
 
 app.use((req, res, next) => {
   res.locals.success = req.flash("success");
