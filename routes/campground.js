@@ -48,7 +48,7 @@ router.get("/:id", async (req, res) => {
   res.render("campgrounds/show", { campground });
 });
 
-router.get("/:id/edit", async (req, res) => {
+router.get("/:id/edit", isLoggedIn, async (req, res) => {
   const id = req.params.id;
   const campground = await Campground.findById(id);
   res.render("campgrounds/edit", { campground });
@@ -56,6 +56,7 @@ router.get("/:id/edit", async (req, res) => {
 
 router.put(
   "/:id",
+  isLoggedIn,
   validateCampground,
   catchAsync(async (req, res) => {
     const id = req.params.id;
@@ -68,7 +69,7 @@ router.put(
   })
 );
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", isLoggedIn, async (req, res) => {
   const id = req.params.id;
   await Campground.findByIdAndDelete(id);
   req.flash("success", "Successfully deleted campground");
