@@ -10,6 +10,7 @@ const flash = require("connect-flash");
 const methodOverride = require("method-override");
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
+const mongoSanitize = require("express-mongo-sanitize");
 
 const ExpressError = require("./utils/ExpressError");
 const campgroundsRoutes = require("./routes/campground");
@@ -37,6 +38,7 @@ app.set("views", path.join(__dirname, "views"));
 app.use(express.urlencoded({ extended: true })); // For express to be able to parse jsons into the body :)
 app.use(methodOverride("_method"));
 app.use(express.static(path.join(__dirname, "public")));
+app.use(mongoSanitize());
 
 const sessionConfig = {
   secret: "thisIsAStringSecretKey",
