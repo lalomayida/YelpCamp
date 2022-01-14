@@ -5,7 +5,7 @@ features = JSON.parse(campgrounds.features);
 campgrounds.features = features;
 
 const map = new mapboxgl.Map({
-  container: "map",
+  container: "cluster-map",
   style: "mapbox://styles/mapbox/streets-v11",
   center: [-103.5917, 40.6699],
   zoom: 3,
