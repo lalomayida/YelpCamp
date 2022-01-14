@@ -14,7 +14,6 @@ module.exports.isLoggedIn = (req, res, next) => {
 
 module.exports.validateCampground = (req, res, next) => {
   const { error } = campgroundJoiSchema.validate(req.body);
-
   if (error) {
     const message = error.details.map((err) => err.message).join(",");
     throw new ExpressError(message, 400);
