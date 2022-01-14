@@ -10,6 +10,8 @@ const flash = require("connect-flash");
 const methodOverride = require("method-override");
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
+const mongoSanitize = require("express-mongo-sanitize");
+const helmet = require("helmet");
 
 const ExpressError = require("./utils/ExpressError");
 const campgroundsRoutes = require("./routes/campground");
@@ -17,7 +19,12 @@ const reviewsRoutes = require("./routes/reviews");
 const userRoutes = require("./routes/user");
 
 const User = require("./models/user");
-mongoose.connect("mongodb://localhost:27017/yelp-camp", {
+
+const MongoStore = require("connect-mongo")(session);
+const dbUrl = "mongodb://localhost:27017/yelp-camp";
+//|| process.env.DB_URL;
+
+mongoose.connect(dbUrl, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
@@ -37,8 +44,21 @@ app.set("views", path.join(__dirname, "views"));
 app.use(express.urlencoded({ extended: true })); // For express to be able to parse jsons into the body :)
 app.use(methodOverride("_method"));
 app.use(express.static(path.join(__dirname, "public")));
+app.use(mongoSanitize());
+
+const store = new MongoStore({
+  url: dbUrl,
+  secret: "thisIsAStringSecretKey",
+  touchAfter: 25 * 3600,
+});
+
+store.on("error", function (e) {
+  console.log("Session error", e);
+});
 
 const sessionConfig = {
+  store,
+  name: "session",
   secret: "thisIsAStringSecretKey",
   resave: false,
   saveUninitialized: true,
@@ -51,6 +71,59 @@ const sessionConfig = {
 
 app.use(session(sessionConfig));
 app.use(flash());
+
+const scriptSrcUrls = [
+  "https://stackpath.bootstrapcdn.com/",
+  "https://api.tiles.mapbox.com/",
+  "https://api.mapbox.com/",
+  "https://kit.fontawesome.com/",
+  "https://cdnjs.cloudflare.com/",
+  "https://cdn.jsdelivr.net/",
+  "https://res.cloudinary.com/dv5vm4sqh/",
+];
+const styleSrcUrls = [
+  "https://kit-free.fontawesome.com/",
+  "https://stackpath.bootstrapcdn.com/",
+  "https://api.mapbox.com/",
+  "https://api.tiles.mapbox.com/",
+  "https://fonts.googleapis.com/",
+  "https://use.fontawesome.com/",
+  "https://cdn.jsdelivr.net/",
+  "https://res.cloudinary.com/dv5vm4sqh/",
+];
+const connectSrcUrls = [
+  "https://*.tiles.mapbox.com",
+  "https://api.mapbox.com",
+  "https://events.mapbox.com",
+  `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/`,
+];
+
+const fontSrcUrls = [];
+
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: [],
+      connectSrc: ["'self'", ...connectSrcUrls],
+      scriptSrc: ["'unsafe-inline'", "'self'", ...scriptSrcUrls],
+      styleSrc: ["'self'", "'unsafe-inline'", ...styleSrcUrls],
+      workerSrc: ["'self'", "blob:"],
+      objectSrc: [],
+      imgSrc: [
+        "'self'",
+        "blob:",
+        "data:",
+        `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/`, //SHOULD MATCH YOUR CLOUDINARY ACCOUNT!
+        "https://images.unsplash.com/",
+      ],
+      fontSrc: ["'self'", ...fontSrcUrls],
+      mediaSrc: [
+        `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/`,
+      ],
+      childSrc: ["blob:"],
+    },
+  })
+);
 
 app.use(passport.initialize());
 app.use(passport.session());
