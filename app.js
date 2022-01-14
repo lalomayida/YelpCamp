@@ -20,8 +20,11 @@ const userRoutes = require("./routes/user");
 
 const User = require("./models/user");
 
-const dbUrl = process.env.DB_URL;
-mongoose.connect("mongodb://localhost:27017/yelp-camp", {
+const MongoStore = require("connect-mongo")(session);
+const dbUrl = "mongodb://localhost:27017/yelp-camp";
+//|| process.env.DB_URL;
+
+mongoose.connect(dbUrl, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
@@ -43,7 +46,18 @@ app.use(methodOverride("_method"));
 app.use(express.static(path.join(__dirname, "public")));
 app.use(mongoSanitize());
 
+const store = new MongoStore({
+  url: dbUrl,
+  secret: "thisIsAStringSecretKey",
+  touchAfter: 25 * 3600,
+});
+
+store.on("error", function (e) {
+  console.log("Session error", e);
+});
+
 const sessionConfig = {
+  store,
   name: "session",
   secret: "thisIsAStringSecretKey",
   resave: false,
