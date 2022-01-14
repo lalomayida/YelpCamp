@@ -22,10 +22,7 @@
                         Looks good!
                     </div>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label" for="image">Add images</label>
-                    <input type="file" name="image" id="image" multiple>
-                </div>
+
                 <div class="mb-3">
                     <label for="price" class="form-label">Campground price</label>
                     <div class="input-group">
@@ -40,6 +37,7 @@
                         </div>
                     </div>
                 </div>
+
                 <div class="mb-3">
                     <label class="form-label" for="description">Description</label>
                     <textarea class="form-control" type="text" id="description"
@@ -47,6 +45,19 @@
                     <div class="valid-feedback">
                         Looks good!
                     </div>
+                </div>
+                <div class="mb-3">
+                    <label for="formFile" class="form-label">Add images</label>
+                    <input class="form-control" type="file" id="formFile" name="image" multiple>
+                </div>
+                <div class="mb-3">
+                    <% campground.images.forEach((image,i)=>{ %>
+                        <img src="<%= image.url %> " class="img-thumbnail" alt="">
+                        <div class="form-check-inline">
+                            <input type="checkbox" name="deleteImages[]" value="<%=image.filename%>" id=" image-<%=i%>">
+                        </div>
+                        <label for=" image-<%=i%>">Delete image</label>
+                        <% }) %>
                 </div>
                 <div class="mb-3">
                     <button class="btn btn-success">Save Campground</button>
