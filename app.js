@@ -19,6 +19,8 @@ const reviewsRoutes = require("./routes/reviews");
 const userRoutes = require("./routes/user");
 
 const User = require("./models/user");
+
+const dbUrl = process.env.DB_URL;
 mongoose.connect("mongodb://localhost:27017/yelp-camp", {
   useNewUrlParser: true,
   useUnifiedTopology: true,
